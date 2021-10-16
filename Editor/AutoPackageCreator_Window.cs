@@ -118,6 +118,7 @@ public class AutoPackageCreator_Window : EditorWindow
         version = EditorGUILayout.TextField("version", version);
         unityVers = EditorGUILayout.TextField("unity", unityVers);
         author = EditorGUILayout.TextField("author", author);
+        category = EditorGUILayout.TextField("category", category);
         // EditorGUILayout.TextArea("description", descr);
         EditorGUILayout.LabelField("description");
         descr = EditorGUILayout.TextArea(descr);
