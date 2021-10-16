@@ -8,15 +8,22 @@ public class AutoPackageCreator_Window : EditorWindow
 {
     static SerializedObject serializedObject;
 
-    string 
-        _name = "com.accName.repoName",
-        displName = "Test repo",
-        version = "0.0.1",
-        unityVers = "2018.4",
-        descr = "",
-        author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
-        //keywords,
-        category;
+    public PackageJson packageJson = new PackageJson();
+
+    public class PackageJson
+    {
+        public string name = "com.accName.repoName",
+                    displayName = "Test repo",
+                    version = "0.0.1",
+                    unity = "2018.4",
+                    description = "",
+                    author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+                   // keywords,
+                    category;
+   
+        public Repository repository;
+        public List<string> dependencies = null;
+    }
 
     public UnityEngine.Object saveFolder;
 
@@ -32,13 +39,13 @@ public class AutoPackageCreator_Window : EditorWindow
 
 
     [System.Serializable]
-    public class RepositoryData
+    public class Repository
     {
         public string 
             type = "git", 
             url = "https://github.com/dimaTidev/Package_MethodsReflection.git";
     }
-    public RepositoryData repoData;
+    public Repository repoData;
     public List<string> dependencies = new List<string>();
    // [AssetMenu]
     [MenuItem("Tools/Package Creator")]
@@ -49,6 +56,7 @@ public class AutoPackageCreator_Window : EditorWindow
 
         serializedObject = new SerializedObject(window);
     }
+
     void OnGUI()
     {
         Draw_SaveFolder();
@@ -59,11 +67,11 @@ public class AutoPackageCreator_Window : EditorWindow
 
         EditorGUILayout.BeginVertical("Helpbox"); //~~~
 
-        _name = EditorGUILayout.TextField("name", _name);
+        packageJson.name = EditorGUILayout.TextField("name", packageJson.name);
 
         if (saveFolder)
         {
-            string path = AssetDatabase.GetAssetPath(saveFolder) + "/" + _name;
+            string path = AssetDatabase.GetAssetPath(saveFolder) + "/" + packageJson.name;
             if (Directory.Exists(path))
             {
                 path += "/" + "package.json";
@@ -111,14 +119,14 @@ public class AutoPackageCreator_Window : EditorWindow
     #region Drawers
     void DrawLines()
     {
-        displName = EditorGUILayout.TextField("displayName", displName);
-        version = EditorGUILayout.TextField("version", version);
-        unityVers = EditorGUILayout.TextField("unity", unityVers);
-        author = EditorGUILayout.TextField("author", author);
-        category = EditorGUILayout.TextField("category", category);
-        // EditorGUILayout.TextArea("description", descr);
+        packageJson.displayName = EditorGUILayout.TextField("displayName", packageJson.displayName);
+        packageJson.version = EditorGUILayout.TextField("version", packageJson.version);
+        packageJson.unity = EditorGUILayout.TextField("unity", packageJson.unity);
+        packageJson.author = EditorGUILayout.TextField("author", packageJson.author);
+        packageJson.category = EditorGUILayout.TextField("category", packageJson.category);
+        // EditorGUILayout.TextArea("description", packageJson.descr);
         EditorGUILayout.LabelField("description");
-        descr = EditorGUILayout.TextArea(descr);
+        packageJson.description = EditorGUILayout.TextArea(packageJson.description);
     }
     void Draw_FoldersToggles()
     {
@@ -154,8 +162,6 @@ public class AutoPackageCreator_Window : EditorWindow
     {
         EditorGUILayout.Space();
 
-        
-
         ScriptableObject target = this;
         SerializedObject so = new SerializedObject(target);
 
@@ -179,7 +185,10 @@ public class AutoPackageCreator_Window : EditorWindow
     #endregion
     void CreateFiles(string path)
     {
-        path += "/" + _name;
+        packageJson.repository = repoData;
+        packageJson.dependencies = dependencies;
+
+        path += "/" + packageJson.name;
         Directory.CreateDirectory(path);
         path += "/";
         //=======================================================================================================
@@ -187,41 +196,41 @@ public class AutoPackageCreator_Window : EditorWindow
         if (!File.Exists(path + fileName))
         {
             string depend = "";
-            for (int i = 0; i < dependencies.Count; i++)
+            for (int i = 0; i < packageJson.dependencies.Count; i++)
             {
                 depend += "    ";
                 if (i != 0)
                     depend += "\n";
-                depend += dependencies[i];
+                depend += packageJson.dependencies[i];
             }
-            string data =
-                "{\n"
-                + $"\"name\": \"{_name}\",\n"
-                + $"\"displayName\": \"{displName}\",\n"
-                + $"\"version\": \"{version}\",\n"
-                + $"\"unity\": \"{unityVers}\",\n"
-                + $"\"description\": \"{descr}\",\n"
-                + $"\"author\": \"{author}\",\n"
-                + (category != "" ? 
-                  $"\"category\": \"{category}\",\n" : "")
-
-                + (repoData.url != "" ? //Repo---------
-                "\"repository\": \n"
-                + "{\n"
-                + $"  \"type\": \"{repoData.type}\",\n"
-                + $"  \"url\": \"{repoData.url}\",\n"
-                + "}\n"
-                : "") //-------------------------------
-
-                + (dependencies != null && dependencies.Count > 0 ? //dependencies---------
-                "\"dependencies\": \n"
-                + "{\n" +
-                        dependencies
-                + "}\n"
-                : "")//---------------------------------------------------------------------
-                + "}\n"
-                ;
-        File.WriteAllText(path + fileName, data);
+            string data = JsonUtility.ToJson(packageJson, true);
+            //    "{\n"
+            //    + $"\"name\": \"{packageJson._name}\",\n"
+            //    + $"\"displayName\": \"{packageJson.displName}\",\n"
+            //    + $"\"version\": \"{packageJson.version}\",\n"
+            //    + $"\"unity\": \"{packageJson.unityVers}\",\n"
+            //    + $"\"description\": \"{packageJson.descr}\",\n"
+            //    + $"\"author\": \"{packageJson.author}\",\n"
+            //    + (packageJson.category != "" ? 
+            //      $"\"category\": \"{packageJson.category}\",\n" : "")
+            //
+            //    + (packageJson.repository.url != "" ? //Repo---------
+            //    "\"repository\": \n"
+            //    + "{\n"
+            //    + $"  \"type\": \"{packageJson.repository.type}\",\n"
+            //    + $"  \"url\": \"{packageJson.repository.url}\",\n"
+            //    + "}\n"
+            //    : "") //-------------------------------
+            //
+            //    + (depend != "" ? //dependencies---------
+            //    "\"dependencies\": \n"
+            //    + "{\n" +
+            //            depend
+            //    + "}\n"
+            //    : "")//---------------------------------------------------------------------
+            //    + "}\n"
+            //    ;
+            File.WriteAllText(path + fileName, data);
         }
         //=======================================================================================================
         fileName = "README.md";
@@ -247,19 +256,20 @@ public class AutoPackageCreator_Window : EditorWindow
                 CreateDirectoryWithFile_ASMDEF(path + "Test/Editor", "EditorTests");
 
             if (folder_TestRuntime)
-                CreateDirectoryWithFile_ASMDEF(path + "Test/Runtime", "RuntimeTests");
+                CreateDirectoryWithFile_ASMDEF(path + "Test/Runtime", "RuntimeTests", folder_Runtime ? "Runtime" : "");
         }
   
         if(folder_Samples) Directory.CreateDirectory(path + "Samples");
         if(folder_Documentation) Directory.CreateDirectory(path + "Documentation");
 
+       // Selection.activeObject = 
         AssetDatabase.Refresh();
     }
 
 
     void CreateDirectoryWithFile_ASMDEF(string path, string targetName, string referencePostfixASMDEF = "", bool isOnlyEditorPlatform = false)
     {
-        string fullFilePath = $"{path}/{_name}.{targetName}.asmdef";
+        string fullFilePath = $"{path}/{packageJson.name}.{targetName}.asmdef";
 
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
@@ -271,10 +281,10 @@ public class AutoPackageCreator_Window : EditorWindow
     string GenerateASMDEF(string postfix, string referencesPostfix, bool isOnlyEditorPlatform)
     {
         return "{\n"
-                + $"\"name\" : \"{_name}.{postfix}\""
+                + $"\"name\" : \"{packageJson.name}.{postfix}\""
                 + (referencesPostfix != "" ?
                 $",\n \"references\": [\n"
-                + $"     \"{_name}.{referencesPostfix}\"\n"
+                + $"     \"{packageJson.name}.{referencesPostfix}\"\n"
                 + $" ],\n"
                 + $" \"optionalUnityReferences\": [],\n"
 
