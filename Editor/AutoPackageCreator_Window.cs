@@ -197,13 +197,15 @@ public class AutoPackageCreator_Window : EditorWindow
                 depend += dependencies[i];
             }
             string data =
-                $"\"name\": \"{_name}\",\n"
+                "{\n"
+                + $"\"name\": \"{_name}\",\n"
                 + $"\"displayName\": \"{displName}\",\n"
                 + $"\"version\": \"{version}\",\n"
                 + $"\"unity\": \"{unityVers}\",\n"
-                + (descr != "" ? $"\"description\": \"{descr}\",\n" : "")
+                + $"\"description\": \"{descr}\",\n"
                 + $"\"author\": \"{author}\",\n"
-                + (category != "" ? $"\"category\": \"{category}\",\n" : "")
+                + (category != "" ? 
+                  $"\"category\": \"{category}\",\n" : "")
 
                 + (repoData.url != "" ? //Repo---------
                 "\"repository\": \n"
@@ -219,6 +221,7 @@ public class AutoPackageCreator_Window : EditorWindow
                         dependencies
                 + "}\n"
                 : "")//---------------------------------------------------------------------
+                + "}\n"
                 ;
         File.WriteAllText(path + fileName, data);
         }
