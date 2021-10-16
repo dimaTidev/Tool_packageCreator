@@ -66,12 +66,9 @@ public class AutoPackageCreator_Window : EditorWindow
             string path = AssetDatabase.GetAssetPath(saveFolder) + "/" + _name;
             if (Directory.Exists(path))
             {
-                Debug.Log("Contain folder");
                 path += "/" + "package.json";
                 if (File.Exists(path))
                 {
-                    Debug.Log("Contain file");
-
                     EditorGUILayout.LabelField("folder already contain package.json!");
                     GUI.enabled = false;
                 }
