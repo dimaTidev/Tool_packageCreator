@@ -1,0 +1,10 @@
+"name": "com.dimatidev.toolpackagecreator",
+"displayName": "Tool Package Creator",
+"version": "0.0.1",
+"unity": "2018.4",
+"author": "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+"repository": 
+{
+  "type": "git",
+  "url": "https://github.com/dimaTidev/Tool_packageCreator.git",
+}
