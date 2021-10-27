@@ -1,1 +1,59 @@
-<mxfile host="app.diagrams.net" modified="2021-10-27T09:58:34.547Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36 OPR/80.0.4170.63" version="15.5.9" etag="Q3uawQ65R_9UPGM58Ga6" type="github"><diagram id="o67DbltbcEiDn2HWugPU">UzV2zq1wL0osyPDNT0nNUTV2VTV2LsrPL4GwciucU3NyVI0MMlNUjV1UjYwMgFjVyA2HrCFY1qAgsSg1rwSLBiADYTaQg2Y1AA==</diagram></mxfile>
+<mxfile host="app.diagrams.net" modified="2021-10-27T10:21:26.967Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36 OPR/80.0.4170.63" etag="lKBxvhJcYlvIYYCKS_Rf" version="15.5.9" type="github">
+  <diagram id="o67DbltbcEiDn2HWugPU" name="Page-1">
+    <mxGraphModel dx="926" dy="516" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" background="#8A8A8A" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-2" value="Vertical Tree Layout" style="swimlane;startSize=20;horizontal=1;childLayout=treeLayout;horizontalTree=0;resizable=0;containerType=tree;" vertex="1" parent="1">
+          <mxGeometry x="278" y="389" width="350" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-3" value="Panel" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="160" y="40" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="I_zbn3CEQjX2cVz7FBOu-2" source="I_zbn3CEQjX2cVz7FBOu-4" target="I_zbn3CEQjX2cVz7FBOu-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-4" value="Create new" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="90" y="130" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-5" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=0;" edge="1" parent="I_zbn3CEQjX2cVz7FBOu-2" source="I_zbn3CEQjX2cVz7FBOu-3" target="I_zbn3CEQjX2cVz7FBOu-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-6" value="Edit exist" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="230" y="130" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-7" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=0;" edge="1" parent="I_zbn3CEQjX2cVz7FBOu-2" source="I_zbn3CEQjX2cVz7FBOu-3" target="I_zbn3CEQjX2cVz7FBOu-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-8" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=0;" edge="1" target="I_zbn3CEQjX2cVz7FBOu-9" source="I_zbn3CEQjX2cVz7FBOu-6" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="348" y="469" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-9" value="Data panel" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="90" y="220" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-12" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=0;" edge="1" target="I_zbn3CEQjX2cVz7FBOu-13" source="I_zbn3CEQjX2cVz7FBOu-9" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="418" y="559" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-13" value="Crete new" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="20" y="310" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-14" value="Edit exist" style="whiteSpace=wrap;html=1;" vertex="1" parent="I_zbn3CEQjX2cVz7FBOu-2">
+          <mxGeometry x="160" y="310" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-15" value="" style="edgeStyle=elbowEdgeStyle;elbow=vertical;html=1;rounded=0;" edge="1" parent="I_zbn3CEQjX2cVz7FBOu-2" source="I_zbn3CEQjX2cVz7FBOu-9" target="I_zbn3CEQjX2cVz7FBOu-14">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="260" as="sourcePoint" />
+            <mxPoint y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="I_zbn3CEQjX2cVz7FBOu-11" value="Selecet stage&lt;br&gt;&lt;ul&gt;&lt;li&gt;if package.json in the same folder than edit&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="95" y="496" width="170" height="104" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
