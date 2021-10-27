@@ -10,6 +10,8 @@ public class AutoPackageCreator_Window : EditorWindow
 
     public PackageJson packageJson = new PackageJson();
 
+    #region jsons
+    //--------------------------------------------------------------------------------------
     public class PackageJson
     {
         public string name = "com.accName.repoName",
@@ -24,6 +26,22 @@ public class AutoPackageCreator_Window : EditorWindow
         public Repository repository;
         public List<string> dependencies = null;
     }
+
+    public class AsmdefJson
+    {
+        public string name;
+        public List<string> references;
+        public List<string> optionalUnityReferences;
+        public List<string> includePlatforms;
+        public List<string> excludePlatforms;
+        public bool allowUnsafeCode;
+        public bool overrideReferences;
+        public List<string> precompiledReferences;
+        public bool autoReferenced;
+        public List<string> defineConstraints;
+    }
+    //--------------------------------------------------------------------------------------
+    #endregion
 
     public UnityEngine.Object saveFolder;
 
@@ -59,6 +77,8 @@ public class AutoPackageCreator_Window : EditorWindow
 
     void OnGUI()
     {
+        OnGUI_DrawAsmdef();
+
         Draw_SaveFolder();
 
         GUI.enabled = saveFolder;
@@ -69,19 +89,36 @@ public class AutoPackageCreator_Window : EditorWindow
 
         packageJson.name = EditorGUILayout.TextField("name", packageJson.name);
 
+        bool isAlreadyHasPackage = false;
+
         if (saveFolder)
         {
-            string path = AssetDatabase.GetAssetPath(saveFolder) + "/" + packageJson.name;
-            if (Directory.Exists(path))
+            string dirPath = AssetDatabase.GetAssetPath(saveFolder);
+
+          // string[] packages = Directory.GetFiles(dirPath, "*.json");
+          // if (packages != null && packages.Length > 0)
+          // {
+          //     isAlreadyHasPackage = true;
+          //     packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packages[0]));
+          // }
+
+            if (!isAlreadyHasPackage)
             {
-                path += "/" + "package.json";
-                if (File.Exists(path))
+                string path = dirPath + "/" + packageJson.name;
+                if (Directory.Exists(path))
                 {
-                    EditorGUILayout.LabelField("folder already contain package.json!");
-                    GUI.enabled = false;
+                    path += "/" + "package.json";
+                    if (File.Exists(path))
+                    {
+                        EditorGUILayout.LabelField("folder already contain package.json!");
+                        GUI.enabled = false;
+                        // isAlreadyHasPackage = true;
+                    }
                 }
             }
         }
+
+
         DrawLines();
         Draw_Repo();
         Draw_Dependencies();
@@ -116,7 +153,48 @@ public class AutoPackageCreator_Window : EditorWindow
         GUI.enabled = true;
     }
 
+    #region ASMDEF
+    //--------------------------------------------------------------------------------------------
+    TextAsset selectedASMDEF;
+
+    void OnGUI_DrawAsmdef()
+    {
+        selectedASMDEF = EditorGUILayout.ObjectField(selectedASMDEF, typeof(TextAsset), true) as TextAsset;
+        if(selectedASMDEF)
+            if (GUILayout.Button("check"))
+            {
+                AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(selectedASMDEF.text);
+
+                foreach (var item in json.references)
+                {
+                    Debug.Log("references: " + item);
+                }
+            }
+    }
+
+    void FindPackajeJson(string path)
+    {
+        Debug.Log("Application.dataPath:" + Application.dataPath);
+
+       // while (path != Application.dataPath)
+       // {
+       //
+       // }
+       //
+       // DirectoryInfo d = new DirectoryInfo(path); //Assuming Test is your Folder
+       //
+       // FileInfo[] files = d.GetFiles("*.json"); //Getting Text files
+       // 
+       // if (files != null && files.Length > 0)
+       // {
+       //
+       // }
+    }
+    //--------------------------------------------------------------------------------------------
+    #endregion
+
     #region Drawers
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------
     void DrawLines()
     {
         packageJson.displayName = EditorGUILayout.TextField("displayName", packageJson.displayName);
@@ -182,6 +260,7 @@ public class AutoPackageCreator_Window : EditorWindow
         if (GUILayout.Button("Info about creating package for unity"))
             Application.OpenURL("https://docs.unity3d.com/Packages/com.unity.package-manager-ui@1.8/manual/index.html");
     }
+    //------------------------------------------------------------------------------------------------------------------------------------------------------------
     #endregion
     void CreateFiles(string path)
     {
@@ -265,8 +344,6 @@ public class AutoPackageCreator_Window : EditorWindow
        // Selection.activeObject = 
         AssetDatabase.Refresh();
     }
-
-
     void CreateDirectoryWithFile_ASMDEF(string path, string targetName, string referencePostfixASMDEF = "", bool isOnlyEditorPlatform = false)
     {
         string fullFilePath = $"{path}/{packageJson.name}.{targetName}.asmdef";
@@ -276,8 +353,6 @@ public class AutoPackageCreator_Window : EditorWindow
         if (!File.Exists(fullFilePath))
             File.WriteAllText(fullFilePath, GenerateASMDEF(targetName, referencePostfixASMDEF, isOnlyEditorPlatform)); //.asmdef
     }
-        
-
     string GenerateASMDEF(string postfix, string referencesPostfix, bool isOnlyEditorPlatform)
     {
         return "{\n"
