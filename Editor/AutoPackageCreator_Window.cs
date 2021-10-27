@@ -101,7 +101,6 @@ public class AutoPackageCreator_Window : EditorWindow
           //     isAlreadyHasPackage = true;
           //     packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packages[0]));
           // }
-
             if (!isAlreadyHasPackage)
             {
                 string path = dirPath + "/" + packageJson.name;
