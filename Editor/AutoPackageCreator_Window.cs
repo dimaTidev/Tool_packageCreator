@@ -3,28 +3,146 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using System;
 
 public class AutoPackageCreator_Window : EditorWindow
 {
-    static SerializedObject serializedObject;
+   // static SerializedObject serializedObject;
 
     public PackageJson packageJson = new PackageJson();
 
     #region jsons
     //--------------------------------------------------------------------------------------
+    [System.Serializable]
     public class PackageJson
     {
         public string name = "com.accName.repoName",
                     displayName = "Test repo",
                     version = "0.0.1",
-                    unity = "2018.4",
-                    description = "",
-                    author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+                    unity = "2018.4";
+        [TextArea]
+        public string description = "";
+
+        public string author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
                    // keywords,
                     category;
    
         public Repository repository;
-        public List<string> dependencies = null;
+        // public List<string> dependencies = null;
+
+       [NonSerialized] public Dictionary<string, string> gitDependencies; //Unity JsonUtility didn't serialize Dictionaries. And we do it by hand.
+
+       [NonSerialized] public Dictionary<string, string> dependencies; //Unity JsonUtility didn't serialize Dictionaries. And we do it by hand.
+
+
+        public string SerializeDictionaryToJson(string value)
+        {
+            List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
+            list.Add(gitDependencies);
+            list.Add(dependencies);
+
+            List<string> depsNames = new List<string>()
+            {
+                "gitDependencies",
+                "dependencies"
+            };
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] == null)
+                    continue;
+
+                if (value.EndsWith("}"))
+                    value = value.Remove(value.Length - 2);
+                if (!value.EndsWith(","))
+                    value += ",";
+                value += "\n";
+
+                value += SerialezeDict(list[i], depsNames[i]);
+                value += "\n}";
+            }
+            return value;
+        }
+        public void DeserializeJsonForDictionary(string value)
+        {
+            gitDependencies = new Dictionary<string, string>();
+            dependencies = new Dictionary<string, string>();
+
+            List<Dictionary<string, string>> list = new List<Dictionary<string, string>>();
+            list.Add(gitDependencies);
+            list.Add(dependencies);
+
+            List<string> depsNames = new List<string>()
+            {
+                "gitDependencies",
+                "dependencies"
+            };
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (value.Contains(depsNames[i]))
+                {
+                    int idStart = value.IndexOf(depsNames[i]);
+                    int idEnd = value.IndexOf("}", idStart);
+
+                    if (idStart < 0)
+                        Debug.Log("idStart < 0 : " + idStart);
+                    if (idEnd < 0)
+                        Debug.Log("idEnd < 0 : " + idEnd);
+
+                    if (idStart < 0 || idEnd < 0)
+                        return;
+
+                    DeserializeDict(list[i], value.Substring(idStart, idEnd - idStart));
+                }
+            }
+        }
+
+        string SerialezeDict(Dictionary<string, string> gitDependencies, string depsLabel)
+        {
+            string result = $"    \"{depsLabel}\": {{";
+            foreach (var item in gitDependencies)
+                result += $"\n        \"{item.Key}\": \"{item.Value}\",";
+
+            if (result.EndsWith(","))
+                result = result.Remove(result.LastIndexOf(",")); //remove coma
+
+            result += "\n    }";
+            return result;
+        }
+
+        void DeserializeDict(Dictionary<string, string> dict, string value)
+        {
+            int idStart = value.IndexOf("{");
+            int idEnd = idStart;
+
+            int recCount = 0;
+            while (true)
+            {
+                idStart = value.IndexOf("\"", idEnd + 1); //find first com.company.package
+                idEnd = value.IndexOf("\"", idStart + 1);
+
+                if (idStart >= idEnd || idStart < 0) //if we come to end of text
+                    break;
+
+                //Debug.Log("idStart : " + idStart + " idEnd:" + idEnd);
+                string part0 = value.Substring(idStart + 1, idEnd - idStart - 1);
+
+                idStart = value.IndexOf("\"", idEnd + 1);
+                idEnd = value.IndexOf("\"", idStart + 1);
+
+                string part1 = value.Substring(idStart + 1, idEnd - idStart - 1);
+
+                dict.Add(part0, part1);
+
+                recCount++;
+                if (recCount > 100)
+                {
+                    Debug.LogError("Recurcie > 100 : " + idStart + " idEnd:" + idEnd);
+                    break;
+                }
+            }
+        }
     }
 
     public class AsmdefJson
@@ -44,6 +162,7 @@ public class AutoPackageCreator_Window : EditorWindow
     #endregion
 
     public UnityEngine.Object saveFolder;
+    bool isExistPackageInFolder;
 
     bool
         folder_Editor,
@@ -53,6 +172,10 @@ public class AutoPackageCreator_Window : EditorWindow
         folder_Samples,
         folder_Documentation;
 
+    bool
+        foldoutGitDepencies,
+        foldoutGitDepenciesNew;
+
     bool foldoutExamples;
 
 
@@ -61,7 +184,7 @@ public class AutoPackageCreator_Window : EditorWindow
     {
         public string 
             type = "git", 
-            url = "https://github.com/dimaTidev/Package_MethodsReflection.git";
+            url = "https://github.com/dimaTidev/Tool_packageCreator.git";
     }
     public Repository repoData;
     public List<string> dependencies = new List<string>();
@@ -71,37 +194,94 @@ public class AutoPackageCreator_Window : EditorWindow
     {
         AutoPackageCreator_Window window = (AutoPackageCreator_Window)EditorWindow.GetWindow(typeof(AutoPackageCreator_Window));
         window.Show();
-
-        serializedObject = new SerializedObject(window);
     }
+
+ //  [System.Serializable]
+ //  public class TestSaveDict
+ //  {
+ //     [SerializeField] public Dictionary<string, string> gitDependencies;
+ //      public List<string> list;
+ //  }
+ //
+ //  void TestSave()
+ //  {
+ //      string path = Application.dataPath + "/" + "testSave.txt";
+ //
+ //       string save = JsonUtility.ToJson(packageJson, true);
+ //       save = packageJson.SerializeDictionaryToJson(save);
+ //
+ //       File.WriteAllText(path, save);
+ //  }
 
     void OnGUI()
     {
-        OnGUI_DrawAsmdef();
+      // if (GUILayout.Button("TestSave"))
+      //     TestSave();
 
+        EditorGUI.BeginChangeCheck();
         Draw_SaveFolder();
+        if (EditorGUI.EndChangeCheck())
+            isExistPackageInFolder = CheckSaveFolder(saveFolder);
 
         GUI.enabled = saveFolder;
 
         EditorGUILayout.BeginHorizontal(); //--------
-
         EditorGUILayout.BeginVertical("Helpbox"); //~~~
 
-        packageJson.name = EditorGUILayout.TextField("name", packageJson.name);
+       // packageJson.name = EditorGUILayout.TextField("name", packageJson.name);
 
-        bool isAlreadyHasPackage = false;
+         //DrawLines(packageJson);
+         Draw_Repo();
+         OnGUI_FindedDependencies();
+         //   Draw_Dependencies();
+         EditorGUILayout.EndVertical(); //~~~
+        
+         GUI.enabled = saveFolder;
+        
+         EditorGUILayout.BeginVertical("Helpbox", GUILayout.MaxWidth(120)); //~~~
+         Draw_FoldersToggles();
+         EditorGUILayout.EndVertical(); //~~~
+        
+         EditorGUILayout.EndHorizontal();//----------
+        
+         GUI.enabled = true;
+        
+         EditorGUILayout.Space();
+         foldoutExamples = EditorGUILayout.Foldout(foldoutExamples, "Examples");
+         if(foldoutExamples)
+             Draw_Examples();
+        
+         GUI.enabled = saveFolder;
+         GUI.color = Color.yellow;
+        
+         
+         EditorGUILayout.Space();
+         EditorGUILayout.Space();
+         EditorGUILayout.Space();
+        // GUI.enabled = isAlreadyHasPackage;
+        if (GUILayout.Button(isExistPackageInFolder ? "apply changes" : "Create hierarchy"))
+            CreateFiles(AssetDatabase.GetAssetPath(saveFolder));
+        
+         GUI.color = Color.white;
+         GUI.enabled = true;
+    }
 
+    bool CheckSaveFolder(UnityEngine.Object saveFolder)
+    {
+        bool isExistPackage = false;
         if (saveFolder)
         {
             string dirPath = AssetDatabase.GetAssetPath(saveFolder);
 
-          // string[] packages = Directory.GetFiles(dirPath, "*.json");
-          // if (packages != null && packages.Length > 0)
-          // {
-          //     isAlreadyHasPackage = true;
-          //     packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packages[0]));
-          // }
-            if (!isAlreadyHasPackage)
+            string[] packages = Directory.GetFiles(dirPath, "package.json");
+            if (packages != null && packages.Length > 0)
+            {
+                isExistPackage = true;
+                packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packages[0]));
+                packageJson.DeserializeJsonForDictionary(File.ReadAllText(packages[0]));
+            }
+
+            if (!isExistPackage)
             {
                 string path = dirPath + "/" + packageJson.name;
                 if (Directory.Exists(path))
@@ -110,65 +290,156 @@ public class AutoPackageCreator_Window : EditorWindow
                     if (File.Exists(path))
                     {
                         EditorGUILayout.LabelField("folder already contain package.json!");
-                        GUI.enabled = false;
-                        // isAlreadyHasPackage = true;
+                        isExistPackage = true;
+                        packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(path));
+                        packageJson.DeserializeJsonForDictionary(File.ReadAllText(path));
                     }
                 }
             }
+
+            if(isExistPackage)
+                Search_newDependenciesInWholeProject();
         }
 
-
-        DrawLines();
-        Draw_Repo();
-        Draw_Dependencies();
-        EditorGUILayout.EndVertical(); //~~~
-
-        GUI.enabled = saveFolder;
-
-        EditorGUILayout.BeginVertical("Helpbox"); //~~~
-        Draw_FoldersToggles();
-        EditorGUILayout.EndVertical(); //~~~
-
-        EditorGUILayout.EndHorizontal();//----------
-
-        GUI.enabled = true;
-
-        EditorGUILayout.Space();
-        foldoutExamples = EditorGUILayout.Foldout(foldoutExamples, "Examples");
-        if(foldoutExamples)
-            Draw_Examples();
-
-        GUI.enabled = saveFolder;
-        GUI.color = Color.yellow;
-
-        EditorGUILayout.Space();
-        EditorGUILayout.Space();
-        EditorGUILayout.Space();
-        if (GUILayout.Button("Create hierarhy"))
-        {
-            CreateFiles(AssetDatabase.GetAssetPath(saveFolder));
-        }
-        GUI.color = Color.white;
-        GUI.enabled = true;
+        if (!isExistPackage)
+            packageJson = new PackageJson();
+        
+        return isExistPackage;
     }
 
     #region ASMDEF
     //--------------------------------------------------------------------------------------------
-    TextAsset selectedASMDEF;
-
-    void OnGUI_DrawAsmdef()
+    void Search_newDependenciesInWholeProject()
     {
-        selectedASMDEF = EditorGUILayout.ObjectField(selectedASMDEF, typeof(TextAsset), true) as TextAsset;
-        if(selectedASMDEF)
-            if (GUILayout.Button("check"))
-            {
-                AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(selectedASMDEF.text);
+        //selectedASMDEF = EditorGUILayout.ObjectField(selectedASMDEF, typeof(TextAsset), true) as TextAsset;
+        if (!saveFolder)
+            return;
+          // if (GUILayout.Button("check"))
+          // {
+                List<string> asmdefPaths = new List<string>();
+                string path = AssetDatabase.GetAssetPath(saveFolder);
+                string[] files = Directory.GetFiles(path, "*.asmdef", SearchOption.AllDirectories);
+                asmdefPaths.AddRange(files);
 
-                foreach (var item in json.references)
+                List<string> usedAsmdefs = new List<string>();
+                foreach (var pathA in asmdefPaths)
                 {
-                    Debug.Log("references: " + item);
+                    AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(File.ReadAllText(pathA));
+                    usedAsmdefs.AddRange(json.references);
                 }
-            }
+                // AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(selectedASMDEF.text);
+                findedDeps = FindAllASMDEFinAssets(usedAsmdefs);
+
+                files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
+                foreach (var packagePath in files)
+                {
+                    PackageJson package = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packagePath));
+                    if (findedDeps.ContainsKey(package.name))
+                        findedDeps.Remove(package.name);
+                }
+
+               // foreach (var item in findedDeps)
+               //     Debug.Log($"item[{item.Value.isInAssetFolder}]: " + item.Key + "  " + item.Value.url);
+          //  }
+    }
+
+    public void CallbackDepChange<K>(Dictionary<string, K> dep, string key)
+    {
+        if (dep[key] is URLVersion urlData)
+        {
+            string value = urlData.url;
+
+            if (packageJson.gitDependencies == null) packageJson.gitDependencies = new Dictionary<string, string>();
+            if (packageJson.dependencies == null) packageJson.dependencies = new Dictionary<string, string>();
+
+            Dictionary<string, string> dict = value.Contains("github") ? packageJson.gitDependencies : packageJson.dependencies;
+           // if (packageJson.dependencies == null)
+           //     packageJson.dependencies = new Dictionary<string, string>();
+            if (dict.ContainsKey(key))
+                dict.Remove(key);
+            dict.Add(key, value);
+        }
+    }
+  // public void CallbackGitDepChange<K>(Dictionary<string, K> dep, string key)
+  // {
+  //     if (dep[key] is URLVersion urlData)
+  //     {
+  //         string value = urlData.url;
+  //         if (packageJson.gitDependencies == null)
+  //             packageJson.gitDependencies = new Dictionary<string, string>();
+  //         if (packageJson.gitDependencies.ContainsKey(key))
+  //             packageJson.gitDependencies.Remove(key);
+  //         packageJson.gitDependencies.Add(key, value);
+  //     }
+  // }
+
+    void OnGUI_FindedDependencies()
+    {
+        OnGUI_DrawDictionary(ref findedDeps, "GitDependencies Search", ref foldoutGitDepenciesNew, false, CallbackDepChange, null, "add"); //CallbackDepChange, "git", "uni"
+    }
+
+    Dictionary<string, URLVersion> findedDeps;
+
+    public class URLVersion
+    {
+        public string url; 
+        public bool isInAssetFolder;
+
+        public URLVersion(string url, string fullPath)
+        {
+            this.url = url;
+            if (fullPath.Contains("Assets"))
+                isInAssetFolder = true;
+        }
+
+        public override string ToString() =>  url + (isInAssetFolder ? "  ASSET FOLDER" : "");
+    }
+
+    Dictionary<string, URLVersion> FindAllASMDEFinAssets(List<string> asmdefNames)
+    {
+        List<string> packages = new List<string>();
+
+        string path = Application.dataPath; //search in asset directory
+        string[] files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
+        packages.AddRange(files);
+
+        path = Path.GetFullPath(Path.Combine(path, @"..\")) + @"Library\PackageCache\"; //search in package directory
+        files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
+        packages.AddRange(files);
+
+        List<string> usedPackages = new List<string>();
+
+        foreach (var packagePath in packages)
+        {
+             string[] asmdefs = Directory.GetFiles(Path.GetDirectoryName(packagePath), "*.asmdef", SearchOption.AllDirectories);
+             foreach (var asmdefPath in asmdefs)
+             {
+                 if (asmdefNames.Contains(Path.GetFileNameWithoutExtension(asmdefPath)))
+                     usedPackages.Add(packagePath);
+             }
+        }
+
+        Dictionary<string, URLVersion> dict = new Dictionary<string, URLVersion>();
+
+        foreach (var packagePath in usedPackages)
+        {
+
+            Debug.Log("packagePath: " + packagePath);
+            PackageJson packageJson = JsonUtility.FromJson<PackageJson>(File.ReadAllText(packagePath));
+            dict.Add(packageJson.name, new URLVersion(packageJson.repository.url + "#" + packageJson.version, packagePath));
+        }
+
+        return dict;
+    }
+
+    List<string> ClearPath(string[] files)
+    {
+        List<string> deps = new List<string>();
+
+        foreach (var item in files)
+            deps.Add(Path.GetFileName(item));
+
+        return deps;
     }
 
     void FindPackajeJson(string path)
@@ -194,7 +465,7 @@ public class AutoPackageCreator_Window : EditorWindow
 
     #region Drawers
     //------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void DrawLines()
+    void DrawLines(PackageJson packageJson)
     {
         packageJson.displayName = EditorGUILayout.TextField("displayName", packageJson.displayName);
         packageJson.version = EditorGUILayout.TextField("version", packageJson.version);
@@ -230,11 +501,15 @@ public class AutoPackageCreator_Window : EditorWindow
 
         ScriptableObject target = this;
         SerializedObject so = new SerializedObject(target);
-
-        SerializedProperty list = so.FindProperty("repoData");
+        
+        SerializedProperty list = so.FindProperty("packageJson");
         EditorGUILayout.PropertyField(list, true);
         so.ApplyModifiedProperties();
+
+        OnGUI_DrawDictionary(ref packageJson.gitDependencies, "git Dependencies", ref foldoutGitDepencies, true);
+        OnGUI_DrawDictionary(ref packageJson.dependencies, "dependencies", ref foldoutGitDepencies, true);
     }
+    
     void Draw_Dependencies()
     {
         EditorGUILayout.Space();
@@ -259,57 +534,40 @@ public class AutoPackageCreator_Window : EditorWindow
         if (GUILayout.Button("Info about creating package for unity"))
             Application.OpenURL("https://docs.unity3d.com/Packages/com.unity.package-manager-ui@1.8/manual/index.html");
     }
+
     //------------------------------------------------------------------------------------------------------------------------------------------------------------
     #endregion
+    
+    
     void CreateFiles(string path)
     {
         packageJson.repository = repoData;
-        packageJson.dependencies = dependencies;
+        //   packageJson.dependencies = dependencies;
 
-        path += "/" + packageJson.name;
-        Directory.CreateDirectory(path);
+        if (!isExistPackageInFolder)
+        {
+            path += "/" + packageJson.name;
+            Directory.CreateDirectory(path);
+        }
+       
         path += "/";
         //=======================================================================================================
         string fileName = "package.json";
-        if (!File.Exists(path + fileName))
-        {
-            string depend = "";
+       // if (!File.Exists(path + fileName))
+       // {
+           /* string depend = "";
             for (int i = 0; i < packageJson.dependencies.Count; i++)
             {
                 depend += "    ";
                 if (i != 0)
                     depend += "\n";
                 depend += packageJson.dependencies[i];
-            }
-            string data = JsonUtility.ToJson(packageJson, true);
-            //    "{\n"
-            //    + $"\"name\": \"{packageJson._name}\",\n"
-            //    + $"\"displayName\": \"{packageJson.displName}\",\n"
-            //    + $"\"version\": \"{packageJson.version}\",\n"
-            //    + $"\"unity\": \"{packageJson.unityVers}\",\n"
-            //    + $"\"description\": \"{packageJson.descr}\",\n"
-            //    + $"\"author\": \"{packageJson.author}\",\n"
-            //    + (packageJson.category != "" ? 
-            //      $"\"category\": \"{packageJson.category}\",\n" : "")
-            //
-            //    + (packageJson.repository.url != "" ? //Repo---------
-            //    "\"repository\": \n"
-            //    + "{\n"
-            //    + $"  \"type\": \"{packageJson.repository.type}\",\n"
-            //    + $"  \"url\": \"{packageJson.repository.url}\",\n"
-            //    + "}\n"
-            //    : "") //-------------------------------
-            //
-            //    + (depend != "" ? //dependencies---------
-            //    "\"dependencies\": \n"
-            //    + "{\n" +
-            //            depend
-            //    + "}\n"
-            //    : "")//---------------------------------------------------------------------
-            //    + "}\n"
-            //    ;
-            File.WriteAllText(path + fileName, data);
-        }
+            }*/
+        string data = JsonUtility.ToJson(packageJson, true);
+        data = packageJson.SerializeDictionaryToJson(data);
+
+        File.WriteAllText(path + fileName, data);
+       // }
         //=======================================================================================================
         fileName = "README.md";
         //File.Create(path + fileName); //Выдает ошибку чтения!!
@@ -337,8 +595,8 @@ public class AutoPackageCreator_Window : EditorWindow
                 CreateDirectoryWithFile_ASMDEF(path + "Test/Runtime", "RuntimeTests", folder_Runtime ? "Runtime" : "");
         }
   
-        if(folder_Samples) Directory.CreateDirectory(path + "Samples");
-        if(folder_Documentation) Directory.CreateDirectory(path + "Documentation");
+        if(folder_Samples && !Directory.Exists(path + "Samples~"))  Directory.CreateDirectory(path + "Samples~");
+        if(folder_Documentation && !Directory.Exists(path + "Documentation~")) Directory.CreateDirectory(path + "Documentation~");
 
        // Selection.activeObject = 
         AssetDatabase.Refresh();
@@ -379,4 +637,61 @@ public class AutoPackageCreator_Window : EditorWindow
                 ;
     }
 
+
+    //-------------------------------------------------------------------------------
+    public void OnGUI_DrawDictionary<T, K>(
+      ref Dictionary<T, K> dictionary, string label, ref bool foldout, bool isCanDelete = false,
+      Action<Dictionary<T, K>, T> callbackButtonAction = null, Action<Dictionary<T, K>, T> callbackButtonAction2 = null,
+      string labelButt0 = "0", string labelButt1 = "1")
+    {
+        if (dictionary == null || dictionary.Count == 0)
+        {
+            EditorGUILayout.LabelField($"{label} - Null or zero");
+            return;
+        }
+
+        foldout = EditorGUILayout.Foldout(foldout, label);
+        if (!foldout)
+            return;
+
+        List<T> key_forDelete = new List<T>();
+
+        EditorGUILayout.BeginVertical("Helpbox");
+        foreach (var item in dictionary)
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (isCanDelete)
+            {
+                GUI.color = Color.red;
+                if (GUILayout.Button("x", GUILayout.Width(20))) //delete
+                    key_forDelete.Add(item.Key);
+            }
+
+            GUI.color = Color.white;
+            if (callbackButtonAction != null)
+            {
+                GUI.color = Color.white;
+                if (GUILayout.Button(labelButt0, GUILayout.Width(35)))
+                    callbackButtonAction?.Invoke(dictionary, item.Key);
+            }
+            GUI.color = Color.white;
+            if (callbackButtonAction2 != null)
+            {
+                GUI.color = Color.white;
+                if (GUILayout.Button(labelButt1, GUILayout.Width(35)))
+                    callbackButtonAction2?.Invoke(dictionary, item.Key);
+            }
+
+            GUI.color = Color.white;
+
+            EditorGUILayout.LabelField(item.Key.ToString(), GUILayout.ExpandWidth(false));
+            EditorGUILayout.LabelField(item.Value.ToString());
+            EditorGUILayout.EndHorizontal();
+        }
+
+        foreach (var item in key_forDelete)
+            dictionary.Remove(item);
+
+        EditorGUILayout.EndVertical();
+    }
 }
