@@ -25,9 +25,15 @@ namespace PackageCreator
             [TextArea]
             public string description = "";
 
-            public string author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+            public string author = "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)";
                        // keywords,
-                        category;
+            [StringSelector(new string[]{
+                "Base",
+                "Nested",
+                "Shaders",
+                "Editor"
+            }, true)]
+            public string category;
    
             public Repository repository;
             // public List<string> dependencies = null;
@@ -192,32 +198,69 @@ namespace PackageCreator
         [System.Serializable]
         public class Repository
         {
-            public string 
-                type = "git", 
-                url = "https://github.com/dimaTidev/Tool_packageCreator.git";
+            public string
+                type = "git";
 
-           // public Repository(string value)
-           // {
-           //     if (value.Contains("\"repository\":"))
-           //     {
-           //         int idStart = value.IndexOf("{", value.IndexOf("\"repository\":"));
-           //         int idEnd = value.IndexOf("}", idStart);
-           //         string substring = value.Substring(idStart, idEnd - idStart + 1);
-           //
-           //         Repository repo = JsonUtility.FromJson<Repository>(substring);
-           //
-           //         type = repo.type;
-           //         url = repo.url;
-           //     }
-           // }
+            [Link]
+            public string url = "https://github.com/dimaTidev/Tool_packageCreator.git";
+            
+            // public Repository(string value)
+            // {
+            //     if (value.Contains("\"repository\":"))
+            //     {
+            //         int idStart = value.IndexOf("{", value.IndexOf("\"repository\":"));
+            //         int idEnd = value.IndexOf("}", idStart);
+            //         string substring = value.Substring(idStart, idEnd - idStart + 1);
+            //
+            //         Repository repo = JsonUtility.FromJson<Repository>(substring);
+            //
+            //         type = repo.type;
+            //         url = repo.url;
+            //     }
+            // }
         }
-       // [AssetMenu]
+        // [AssetMenu]
+
+        [UnityEditor.MenuItem("Assets/Package Creator")]
+        static void InitSelected()
+        {
+            AutoPackageCreator_Window window = (AutoPackageCreator_Window)EditorWindow.GetWindow(typeof(AutoPackageCreator_Window));
+
+            if (Selection.assetGUIDs.Length != 0)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs[0]);
+
+                if (Path.HasExtension(path))
+                    path = path.Replace(Path.GetFileName(path), "");
+
+                if (path.EndsWith("/"))
+                    path = path.Remove(path.Length - 1);
+
+                window.SetSelectedFolder(AssetDatabase.LoadMainAssetAtPath(path));
+            }
+                //AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs[0]));
+
+
+
+        //    Debug.Log("name: "+ AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(Selection.assetGUIDs[0])).name);
+
+            window.Show();
+        }
+
+
         [MenuItem("Tools/Package Creator")]
         static void Init()
         {
             AutoPackageCreator_Window window = (AutoPackageCreator_Window)EditorWindow.GetWindow(typeof(AutoPackageCreator_Window));
             window.Show();
         }
+
+        public void SetSelectedFolder(UnityEngine.Object target) 
+        {
+            saveFolder = target;
+            isExistPackageInFolder = CheckSaveFolder(target);
+        }
+
 
         void OnGUI()
         {
@@ -272,42 +315,48 @@ namespace PackageCreator
              GUI.enabled = true;
         }
 
+        bool CheckSaveFolder(string dirPath)
+        {
+            Debug.Log("dirPath: " + dirPath);
+
+            bool isExistPackage = false;
+
+            string[] packages = Directory.GetFiles(dirPath, "package.json");
+            if (packages != null && packages.Length > 0)
+            {
+                isExistPackage = true;
+                packageJson = PackageJson.Parce(File.ReadAllText(packages[0]));
+            }
+
+            if (!isExistPackage)
+            {
+                string path = dirPath + (!dirPath.EndsWith("/") ? "/" : "") + packageJson.name;
+                if (Directory.Exists(path))
+                {
+                    path += "/" + "package.json";
+                    if (File.Exists(path))
+                    {
+                        EditorGUILayout.LabelField("folder already contain package.json!");
+                        isExistPackage = true;
+                        packageJson = PackageJson.Parce(File.ReadAllText(path));
+                    }
+                }
+            }
+
+            if (isExistPackage)
+            {
+                Search_newDependenciesInWholeProject();
+                FolderCheck(dirPath);
+            }
+
+            return isExistPackage;
+        }
+
         bool CheckSaveFolder(UnityEngine.Object saveFolder)
         {
             bool isExistPackage = false;
             if (saveFolder)
-            {
-                string dirPath = AssetDatabase.GetAssetPath(saveFolder);
-
-                string[] packages = Directory.GetFiles(dirPath, "package.json");
-                if (packages != null && packages.Length > 0)
-                {
-                    isExistPackage = true;
-                    packageJson = PackageJson.Parce(File.ReadAllText(packages[0]));
-                }
-
-                if (!isExistPackage)
-                {
-                    string path = dirPath + "/" + packageJson.name;
-                    if (Directory.Exists(path))
-                    {
-                        path += "/" + "package.json";
-                        if (File.Exists(path))
-                        {
-                            EditorGUILayout.LabelField("folder already contain package.json!");
-                            isExistPackage = true;
-                            packageJson = PackageJson.Parce(File.ReadAllText(path));
-                        }
-                    }
-                }
-
-                if (isExistPackage)
-                {
-                    Search_newDependenciesInWholeProject();
-                    FolderCheck(dirPath);
-                }
-                    
-            }
+                isExistPackage = CheckSaveFolder(AssetDatabase.GetAssetPath(saveFolder));
 
             if (!isExistPackage)
                 packageJson = new PackageJson();

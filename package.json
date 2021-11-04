@@ -1,12 +1,13 @@
 {
-	"name": "com.dimatidev.toolpackagecreator",
-	"displayName": "Tool Package Creator",
-	"version": "0.0.4",
-	"unity": "2018.4",
-	"description": "Simple tool for package creation.",
-	"author": "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
-	  "repository": {
-	    "type": "git",
-	    "url": "https://github.com/dimaTidev/Tool_packageCreator.git"
-	  }
+    "name": "com.dimatidev.toolpackagecreator",
+    "displayName": "Tool Package Creator",
+    "version": "0.0.4",
+    "unity": "2018.4",
+    "description": "Simple tool for package creation.",
+    "author": "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+    "category": "Editor",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dimaTidev/Tool_packageCreator.git"
+    }
 }
