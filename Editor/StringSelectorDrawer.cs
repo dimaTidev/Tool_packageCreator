@@ -14,8 +14,11 @@ public class StringSelectorDrawer : PropertyDrawer
 
         Rect rect = new Rect(position.x, position.y, position.width / 2, position.height);
 
-        EditorGUI.PropertyField(rect, property); //label
-        rect.x += rect.width;
+        if (attr.isShowProperty)
+        {
+            EditorGUI.PropertyField(rect, property); //label
+            rect.x += rect.width;
+        } 
 
         int index = Array.IndexOf(attr.array, property.stringValue);
 

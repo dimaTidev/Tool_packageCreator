@@ -3,11 +3,19 @@
     "displayName": "Tool Package Creator",
     "version": "0.0.4",
     "unity": "2018.4",
+    "unityRelease": "27f1",
     "description": "Simple tool for package creation.",
     "author": "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
+    "keywords": [
+        "Editor"
+    ],
     "category": "Editor",
     "repository": {
         "type": "git",
         "url": "https://github.com/dimaTidev/Tool_packageCreator.git"
+    },
+    "gitDependencies": {
+    },
+    "dependencies": {
     }
 }
