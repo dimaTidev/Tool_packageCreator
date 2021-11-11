@@ -26,8 +26,10 @@ namespace PackageCreator
                     "Base",
                     "Nested",
                     "Shaders",
-                    "Editor"
-                }, true, false)] public List<string> keywords;
+                    "Editor",
+                    "Debug",
+                    "Tools"
+                }, true, true)] public List<string> keywords;
 
         [StringSelector(new string[]{
                     "Base",

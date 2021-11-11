@@ -25,7 +25,7 @@ public class StringSelectorDrawer : PropertyDrawer
         if (attr.isEnumOrButton)
         {
             EditorGUI.BeginChangeCheck();
-            index = EditorGUI.Popup(rect, property.displayName, index, attr.array);
+            index = EditorGUI.Popup(rect, index, attr.array);
             if (EditorGUI.EndChangeCheck())
                 property.stringValue = attr.array[index];
         }
