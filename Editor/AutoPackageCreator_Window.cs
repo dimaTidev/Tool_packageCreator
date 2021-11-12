@@ -199,8 +199,8 @@ namespace PackageCreator
 
             folder_Editor = Directory.Exists(path + "Editor");
             folder_Runtime = Directory.Exists(path + "Runtime");
-            folder_TestEditor = Directory.Exists(path + "Test") && Directory.Exists(path + "Test/Editor");
-            folder_TestRuntime = Directory.Exists(path + "Test") && Directory.Exists(path + "Test/Runtime");
+            folder_TestEditor = Directory.Exists(path + "Tests") && Directory.Exists(path + "Tests/Editor");
+            folder_TestRuntime = Directory.Exists(path + "Tests") && Directory.Exists(path + "Tests/Runtime");
             folder_Samples = Directory.Exists(path + "Samples");
             folder_Documentation = Directory.Exists(path + "Documentation");
         }
@@ -487,13 +487,13 @@ namespace PackageCreator
 
             if (folder_TestEditor || folder_TestRuntime)
             {
-                if (!Directory.Exists(path + "Test"))
-                    Directory.CreateDirectory(path + "Test");
+                if (!Directory.Exists(path + "Tests"))
+                    Directory.CreateDirectory(path + "Tests");
                 if (folder_TestEditor)
-                    CreateDirectoryWithFile_ASMDEF(path + "Test/Editor", "EditorTests");
+                    CreateDirectoryWithFile_ASMDEF(path + "Tests/Editor", "EditorTests");
 
                 if (folder_TestRuntime)
-                    CreateDirectoryWithFile_ASMDEF(path + "Test/Runtime", "RuntimeTests", folder_Runtime ? "Runtime" : "");
+                    CreateDirectoryWithFile_ASMDEF(path + "Tests/Runtime", "RuntimeTests", folder_Runtime ? "Runtime" : "");
             }
   
             if(folder_Samples && !Directory.Exists(path + "Samples~"))  Directory.CreateDirectory(path + "Samples~");
