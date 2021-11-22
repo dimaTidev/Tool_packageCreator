@@ -49,7 +49,7 @@ namespace PackageCreator
         bool foldoutExamples;
 
 
-        [MenuItem("Tools/Package Creator")]
+        [MenuItem("Tools/Editor/Package Creator")]
         static void Init() => ((AutoPackageCreator_Window)EditorWindow.GetWindow(typeof(AutoPackageCreator_Window))).Show();
 
         #region Window Open
