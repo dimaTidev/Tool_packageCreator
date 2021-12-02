@@ -3,7 +3,6 @@
     "displayName": "Tool Package Creator",
     "version": "0.0.4",
     "unity": "2018.4",
-    "unityRelease": "27f1",
     "description": "Simple tool for package creation.",
     "author": "DimaTi <timofeenkodima@gmail.com> (https://github.com/dimaTidev)",
     "keywords": [
