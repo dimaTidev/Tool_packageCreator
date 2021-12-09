@@ -307,7 +307,7 @@ namespace PackageCreator
             {
                 this.url = url;
                 this.version = version;
-                if (fullPath.Contains("Assets"))
+                if (fullPath.Contains("Assets") || fullPath.Contains("/Packages"))
                     isInAssetFolder = true;
             }
 
@@ -320,6 +320,10 @@ namespace PackageCreator
 
             string path = Application.dataPath; //search in asset directory
             string[] files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
+            packages.AddRange(files);
+
+            path = Application.dataPath.Replace("/Assets", "/Packages"); //search in asset directory
+            files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
             packages.AddRange(files);
 
             path = Path.GetFullPath(Path.Combine(path, @"..\")) + @"Library\PackageCache\"; //search in package directory
