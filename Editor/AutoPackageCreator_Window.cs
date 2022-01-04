@@ -225,8 +225,9 @@ namespace PackageCreator
                         AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(File.ReadAllText(pathA));
                         usedAsmdefs.AddRange(json.references);
                     }
-                    // AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(selectedASMDEF.text);
-                    findedDeps = FindAllASMDEFinAssets(usedAsmdefs);
+
+            // AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(selectedASMDEF.text);
+            findedDeps = FindAllASMDEFinAssets(usedAsmdefs);
 
                     files = Directory.GetFiles(path, "package.json", SearchOption.AllDirectories);
                     foreach (var packagePath in files)
@@ -337,8 +338,22 @@ namespace PackageCreator
                  string[] asmdefs = Directory.GetFiles(Path.GetDirectoryName(packagePath), "*.asmdef", SearchOption.AllDirectories);
                  foreach (var asmdefPath in asmdefs)
                  {
+                    string compareName = "";
+#if UNITY_2020_1_OR_NEWER
+                    string[] lines = File.ReadAllLines(asmdefPath + ".meta");
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        if (lines[i].Contains("guid:"))
+                        {
+                            compareName = "GUID:" + lines[i].Substring(6);
+                            break;
+                        }
+                    }
+#else
                     AsmdefJson json = JsonUtility.FromJson<AsmdefJson>(File.ReadAllText(asmdefPath));
-                    if (asmdefNames.Contains(json.name))
+                    compareName = json.name;
+#endif
+                    if (asmdefNames.Contains(compareName))
                          usedPackages.Add(packagePath);
                  }
             }
@@ -365,28 +380,28 @@ namespace PackageCreator
             return deps;
         }
 
-        void FindPackajeJson(string path)
-        {
-            Debug.Log("Application.dataPath:" + Application.dataPath);
-
-           // while (path != Application.dataPath)
-           // {
-           //
-           // }
-           //
-           // DirectoryInfo d = new DirectoryInfo(path); //Assuming Test is your Folder
-           //
-           // FileInfo[] files = d.GetFiles("*.json"); //Getting Text files
-           // 
-           // if (files != null && files.Length > 0)
-           // {
-           //
-           // }
-        }
+      //  void FindPackajeJson(string path)
+      //  {
+      //      Debug.Log("Application.dataPath:" + Application.dataPath);
+      //
+      //     // while (path != Application.dataPath)
+      //     // {
+      //     //
+      //     // }
+      //     //
+      //     // DirectoryInfo d = new DirectoryInfo(path); //Assuming Test is your Folder
+      //     //
+      //     // FileInfo[] files = d.GetFiles("*.json"); //Getting Text files
+      //     // 
+      //     // if (files != null && files.Length > 0)
+      //     // {
+      //     //
+      //     // }
+      //  }
         //--------------------------------------------------------------------------------------------
-        #endregion
+#endregion
 
-        #region Drawers
+#region Drawers
         //------------------------------------------------------------------------------------------------------------------------------------------------------------
         void Draw_FoldersToggles()
         {
@@ -441,9 +456,9 @@ namespace PackageCreator
         }
 
         //------------------------------------------------------------------------------------------------------------------------------------------------------------
-        #endregion
+#endregion
 
-        #region Creation
+#region Creation
         void CreateFiles(string path)
         {
            // packageJson.repository = repoData;
@@ -541,7 +556,7 @@ namespace PackageCreator
                     + "\n}"
                     ;
         }
-        #endregion
+#endregion
 
         //-------------------------------------------------------------------------------
         public void OnGUI_DrawDictionary<T, K>(
