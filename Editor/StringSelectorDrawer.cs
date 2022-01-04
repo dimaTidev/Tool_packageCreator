@@ -16,7 +16,7 @@ public class StringSelectorDrawer : PropertyDrawer
 
         if (attr.isShowProperty)
         {
-            EditorGUI.PropertyField(rect, property); //label
+            EditorGUI.PropertyField(rect, property, new GUIContent(property.displayName)); //label
             rect.x += rect.width;
         } 
 

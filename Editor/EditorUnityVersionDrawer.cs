@@ -16,20 +16,20 @@ public class EditorUnityVersionDrawer : PropertyDrawer
 
         Rect rect = new Rect(position.x, position.y, 250, position.height);
 
-        EditorGUI.PropertyField(rect, property);
+        EditorGUI.PropertyField(rect, property, new GUIContent(property.displayName), true);
 
         rect.x += rect.width;
         rect.width = widthButton;
-
+      
         if (GUI.Button(rect, "Set"))
         {
             property.stringValue = GetVers(attr.isUnityVersionOrRevision);
         }
             
-
+      
         rect.x += rect.width;
         rect.width = width;
-
+      
         GUI.Label(rect, GetVers(attr.isUnityVersionOrRevision));
     }
 
